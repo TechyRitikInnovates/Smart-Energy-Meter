@@ -1,0 +1,53 @@
+var ss = SpreadsheetApp.openById('1gjkg8ggZn9xntmRJXc-1GWDrp7GWLeucKpZCw2OwhnM'); // Enter your Google Sheets URL Id here
+var sheet = ss.getSheetByName('Sheet1');
+var timezone = "Asia/Kolkata"; // Set your timezone
+
+function doGet(e) {
+  Logger.log(JSON.stringify(e));
+
+  // Check if required parameters are present
+  if (!e.parameter.energy || !e.parameter.power || !e.parameter.voltage || !e.parameter.current || !e.parameter.pf || !e.parameter.frequency) {
+    return ContentService.createTextOutput("One or more parameters are missing");
+  }
+
+  // Get GPS data from ESP32
+  var Curr_Date = new Date();
+  var Curr_Time = Utilities.formatDate(Curr_Date, timezone, 'HH:mm:ss');
+
+  var energy = stripQuotes(e.parameter.energy);
+  var power = stripQuotes(e.parameter.power);
+  var voltage = stripQuotes(e.parameter.voltage);
+  var current = stripQuotes(e.parameter.current);
+  var pf = stripQuotes(e.parameter.pf);
+  var frequency = stripQuotes(e.parameter.frequency);
+
+  // Write data to the next row in the sheet
+  var nextRow = sheet.getLastRow() + 1;
+  sheet.getRange("A" + nextRow).setValue(Curr_Date);
+  sheet.getRange("B" + nextRow).setValue(Curr_Time);
+  sheet.getRange("C" + nextRow).setValue(energy);
+  sheet.getRange("D" + nextRow).setValue(power);
+  sheet.getRange("E" + nextRow).setValue(voltage);
+  sheet.getRange("F" + nextRow).setValue(current);
+  sheet.getRange("G" + nextRow).setValue(pf);
+  sheet.getRange("H" + nextRow).setValue(frequency);
+
+  // Return response back to ESP32
+  return ContentService.createTextOutput("Data has been successfully stored.");
+}
+
+function stripQuotes(value) {
+  return value.toString().replace(/^["']|['"]$/g, "");
+}
+
+// Extra Function. Not used in this project.
+// planning to use in future projects.
+// this function is used to handle POST request
+function doPost(e) {
+  var val = e.parameter.value;
+
+  if (val !== undefined) {
+    var range = sheet.getRange('A2');
+    range.setValue(val);
+  }
+}
